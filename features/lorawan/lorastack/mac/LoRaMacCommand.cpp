@@ -23,7 +23,6 @@ SPDX-License-Identifier: BSD-3-Clause
 */
 
 #include <string.h>
-#include "platform/mbed_rtc_time.h"
 #include "LoRaMacCommand.h"
 #include "LoRaMac.h"
 #include "mbed-trace/mbed_trace.h"
