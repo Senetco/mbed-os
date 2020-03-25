@@ -259,10 +259,14 @@ lorawan_status_t LoRaWANInterface::enable_beacon_acquisition()
     return  _lw_stack.enable_beacon_acquisition();
 }
 
+lorawan_status_t LoRaWANInterface::disable_beacon_acquisition()
+{
+    return _lw_stack.disable_beacon_acquisition();
+}
+
 lorawan_status_t LoRaWANInterface::get_last_rx_beacon(loramac_beacon_t &beacon)
 {
     Lock lock(*this);
     return  _lw_stack.get_last_rx_beacon(beacon);
-
 }
 

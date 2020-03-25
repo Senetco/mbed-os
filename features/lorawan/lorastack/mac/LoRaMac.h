@@ -500,6 +500,11 @@ public:
                                                                    const loramac_beacon_t *)>beacon_event_cb);
 
     /**
+     * Disable network beacon acquisition and tracking
+     */
+    lorawan_status_t disable_beacon_acquisition();
+
+    /**
      * Set Class B ping slot periodicity
      * @param beacon_event_cb - stack callback
      */

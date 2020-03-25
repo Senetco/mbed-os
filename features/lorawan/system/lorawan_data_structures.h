@@ -1576,6 +1576,12 @@ typedef struct {
      */
     uint8_t forced_datarate;
 
+    /*! 
+     * Flag indicating if  received join accept should be discarded 
+     * (e.g last transmit was not a join type or it was not eceived in a class A RX1/RX2 window)
+     */
+    bool discard_join_accept;
+
 } loramac_protocol_params;
 
 

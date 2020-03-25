@@ -563,6 +563,7 @@ lorawan_status_t LoRaWANStack::set_device_class(const device_class_t &device_cla
                                                mbed::callback(this, &LoRaWANStack::post_process_tx_no_reception));
         }
     }
+
     return status;
 }
 
@@ -853,7 +854,6 @@ void LoRaWANStack::process_reception(const uint8_t *const payload, uint16_t size
     switch (rx_slot) {
         case RX_SLOT_WIN_1:
         case RX_SLOT_WIN_2:
-        case RX_SLOT_WIN_CLASS_C: // Is this right?
             // Post process transmission in response to the reception
             post_process_tx_with_reception();
 
@@ -887,6 +887,7 @@ void LoRaWANStack::process_reception(const uint8_t *const payload, uint16_t size
             break;
         case RX_SLOT_WIN_UNICAST_PING_SLOT:
         case RX_SLOT_WIN_MULTICAST_PING_SLOT:
+        case RX_SLOT_WIN_CLASS_C: // Is this right?
             _ctrl_flags |= MSG_RECVD_FLAG;
             state_controller(DEVICE_STATE_STATUS_CHECK);
             break;
@@ -1643,6 +1644,11 @@ void LoRaWANStack::process_beacon_event(loramac_beacon_status_t status, const lo
 lorawan_status_t LoRaWANStack::enable_beacon_acquisition()
 {
     return _loramac.enable_beacon_acquisition(mbed::callback(this, &LoRaWANStack::process_beacon_event));
+}
+
+lorawan_status_t LoRaWANStack::disable_beacon_acquisition()
+{
+    return _loramac.disable_beacon_acquisition();
 }
 
 lorawan_status_t LoRaWANStack::get_last_rx_beacon(loramac_beacon_t &beacon)

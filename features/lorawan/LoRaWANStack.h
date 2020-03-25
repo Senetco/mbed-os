@@ -463,6 +463,16 @@ public:
      */
     lorawan_status_t enable_beacon_acquisition();
 
+    /** Disable Network beacon acquisition
+     *
+     * Disable Network beacon acquistion and tracking.
+     *
+     * @return          LORAWAN_STATUS_OK if beacon acquisition disabled, or
+     *                  a negative error code on failure
+     *
+     */
+    lorawan_status_t disable_beacon_acquisition();
+
     /**
      * @brief Get the last received beacon contents
      *

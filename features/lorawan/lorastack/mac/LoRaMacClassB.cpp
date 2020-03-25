@@ -174,6 +174,18 @@ lorawan_status_t LoRaMacClassB::enable_beacon_acquisition(mbed::Callback<void(lo
     return status;
 }
 
+lorawan_status_t LoRaMacClassB::disable_beacon_acquisition()
+{
+    if (_opstatus.beacon_on) {
+        _opstatus.beacon_on = 0;
+        _lora_time->stop(_beacon_acq_timer);
+        _lora_time->stop(_beacon_timer);
+        tr_debug("Disabled Beacon Acquisition");
+    }
+
+    return LORAWAN_STATUS_OK;
+}
+
 void LoRaMacClassB::beacon_acquisition_timeout(void)
 {
     // Disable beacon acquisition

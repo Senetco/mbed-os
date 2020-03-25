@@ -71,6 +71,13 @@ protected:
                                                                    const loramac_beacon_t *)> beacon_event_cb);
 
     /**
+     * @brief Disable beacon acquisition and tracking
+     *
+     * @return lorawan_status_t LORAWAN_STATUS_OK or a negative error return code
+     */
+    lorawan_status_t disable_beacon_acquisition();
+
+    /**
      * @brief Enable class B. To be called after successful beacon acquisition to enable B ping slots
      *
      * @return lorawan_status_t LORAWAN_STATUS_OK or a negative error return code

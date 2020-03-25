@@ -49,6 +49,11 @@ public:
         return _class_b.enable_beacon_acquisition(beacon_event_cb);
     }
 
+    inline static lorawan_status_t disable_beacon_acquisition()
+    {
+        return _class_b.disable_beacon_acquisition();
+    }
+
     inline static lorawan_status_t enable(void)
     {
         return _class_b.enable();

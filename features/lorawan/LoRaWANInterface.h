@@ -668,6 +668,15 @@ public:
      */
     virtual lorawan_status_t enable_beacon_acquisition();
 
+    /** Disable beacon acquistion 
+     *
+     * Disables beacon reception 
+     *
+     * @return   LORAWAN_STATUS_OK if beacon acquistion  is disabled, otherwise
+     *           other negative error code if request failed:
+     */
+    virtual lorawan_status_t disable_beacon_acquisition();
+
     /** Get last received beacon data
      *
      * Allows the application to inspect last received beacon frame contents.

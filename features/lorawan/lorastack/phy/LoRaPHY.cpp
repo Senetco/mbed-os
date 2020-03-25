@@ -565,7 +565,7 @@ void LoRaPHY::reset_to_default_values(loramac_protocol_params *params, bool init
 
     // We shall always start with highest achievable data rate.
     // Subsequent decrease in data rate will mean increase in range henceforth.
-    params->sys_params.channel_data_rate = get_default_max_tx_datarate();
+    // params->sys_params.channel_data_rate = get_default_max_tx_datarate();
 
     params->sys_params.rx1_dr_offset = phy_params.default_rx1_dr_offset;
 
