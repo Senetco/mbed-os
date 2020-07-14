@@ -518,6 +518,8 @@ typedef struct {
     bool accept_tx_param_setup_req;
     bool fsk_supported;
     bool cflist_supported;
+    bool cflist_channel_mask_supported;
+    bool cflist_join_eui_supported;
     bool custom_channelplans_supported;
     bool dl_channel_req_supported;
 

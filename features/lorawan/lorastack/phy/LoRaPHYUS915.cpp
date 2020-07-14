@@ -325,6 +325,7 @@ LoRaPHYUS915::LoRaPHYUS915()
     phy_params.accept_tx_param_setup_req = false;
     phy_params.fsk_supported = false;
     phy_params.cflist_supported = false;
+    phy_params.cflist_join_eui_supported = true;
     phy_params.dl_channel_req_supported = false;
     phy_params.custom_channelplans_supported = false;
     phy_params.default_channel_cnt = US915_MAX_NB_CHANNELS;

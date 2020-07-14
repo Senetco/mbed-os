@@ -33,6 +33,7 @@ SPDX-License-Identifier: BSD-3-Clause
 using namespace events;
 using namespace mbed;
 
+
 /*
  * LoRaWAN spec 6.2: AppKey is AES-128 key
  */
@@ -72,7 +73,7 @@ using namespace mbed;
 #define PORT_FIELD_LEN                              1
 #define FHDR_LEN_WITHOUT_FOPTS                      7
 
-#define JOIN_ACCEPT_LEN_WITHOUT_CFLIST              17
+#define JOIN_ACCEPT_LEN_WITHOUT_CFLIST              12
 
 #define RJCOUNT_ROLLOVER                            65535
 
@@ -232,13 +233,14 @@ loramac_event_info_status_t LoRaMac::handle_join_accept_frame(const uint8_t *pay
     server_type_t stype = LW1_0_2;
     bool is_cflist_present = false;
 
-    if (size > JOIN_ACCEPT_LEN_WITHOUT_CFLIST) {
+
+    if (size > (MHDR_LEN + JOIN_ACCEPT_LEN_WITHOUT_CFLIST + LORAMAC_MFR_LEN))  {
         is_cflist_present = true;
     }
-
     if (0 != _lora_crypto.decrypt_join_frame(payload + 1, size - 1,
                                              _params.rx_buffer + 1,
                                              (_params.join_request_type == JOIN_REQUEST))) {
+        tr_debug("JA:  decrypt frame failed");
         return LORAMAC_EVENT_INFO_STATUS_CRYPTO_FAIL;
     }
     _params.rx_buffer[0] = payload[0];
@@ -306,6 +308,7 @@ loramac_event_info_status_t LoRaMac::handle_join_accept_frame(const uint8_t *pay
                                             mic_start,
                                             JOIN_ACCEPT,
                                             &mic) != 0) {
+        tr_debug("JA:  compute join mic failed");
         return LORAMAC_EVENT_INFO_STATUS_CRYPTO_FAIL;
     }
 
@@ -319,6 +322,7 @@ loramac_event_info_status_t LoRaMac::handle_join_accept_frame(const uint8_t *pay
         _params.server_type = stype;
         if (_lora_crypto.compute_skeys_for_join_frame(args, args_size,
                                                       _params.server_type) != 0) {
+            tr_debug("JA: compute skeys failed");
             return LORAMAC_EVENT_INFO_STATUS_CRYPTO_FAIL;
         }
 
@@ -353,19 +357,27 @@ loramac_event_info_status_t LoRaMac::handle_join_accept_frame(const uint8_t *pay
         _params.sys_params.recv_delay1 *= 1000;
         _params.sys_params.recv_delay2 = _params.sys_params.recv_delay1 + 1000;
 
+        // Move joined state change prior to CFList processing which may result in
+        // CFList Join EUI reconfiguration that will reset state to not joined
+        _is_nwk_joined = true;
+
         // Size of the regular payload is 12. Plus 1 byte MHDR and 4 bytes MIC (== 17)
         //TODO: join request type is needed here also! See LW1.1 lines 1711 -> 1719 (Reset or not)
         // LW1.1 CF_LIST's 16th byte is CFListType!
         if (is_cflist_present) {
-            _lora_phy->apply_cf_list(&_params.rx_buffer[payload_start + JOIN_ACCEPT_LEN_WITHOUT_CFLIST],
-                                     size - (JOIN_ACCEPT_LEN_WITHOUT_CFLIST + MHDR_LEN + LORAMAC_MFR_LEN));
+            _lora_phy->apply_cf_list(&_params.rx_buffer[payload_start + 12],
+                                size - (JOIN_ACCEPT_LEN_WITHOUT_CFLIST + MHDR_LEN + LORAMAC_MFR_LEN));
+
+            // CF-List new join eui reconfiguration.
+            if(_params.join_accept_new_join_eui){
+                _is_nwk_joined = false;
+                return  LORAMAC_EVENT_INFO_STATUS_NEW_JOIN_EUI;
+            }
         } else {
             if (_params.join_request_type != REJOIN_REQUEST_TYPE2) {
                 _lora_phy->restore_default_channels();
             }
         }
-
-        _is_nwk_joined = true;
 
         if (_params.join_request_type == REJOIN_REQUEST_TYPE0 ||
                 _params.join_request_type == REJOIN_REQUEST_TYPE2) {
@@ -1534,6 +1546,8 @@ void LoRaMac::reset_mac_parameters(void)
 
     _demod_ongoing = false;
     _mod_ongoing = false;
+
+    _params.join_accept_new_join_eui = false;
 }
 
 uint8_t LoRaMac::get_default_tx_datarate()
@@ -2435,6 +2449,9 @@ lorawan_status_t LoRaMac::multicast_channel_unlink(multicast_params_t *channel_p
 void LoRaMac::bind_phy(LoRaPHY &phy)
 {
     _lora_phy = &phy;
+
+     // Set Join-accept CF-List new join eui handler
+    _lora_phy->set_cflist_join_eui_handler(mbed::callback(this, &LoRaMac::process_cflist_join_eui));
 }
 
 uint8_t LoRaMac::get_QOS_level()
@@ -2544,4 +2561,22 @@ lorawan_status_t LoRaMac::disable_beacon_acquisition()
 lorawan_status_t LoRaMac::get_last_rx_beacon(loramac_beacon_t &beacon)
 {
     return LoRaMacClassBInterface::get_last_rx_beacon(beacon);
+}
+
+void LoRaMac::process_cflist_join_eui(const uint8_t *join_eui, const uint8_t *cookie)
+{
+    memcpy_convert_endianess(_params.cflist_join_eui, join_eui, 8);
+    memcpy(_params.cflist_join_eui_sc, cookie, LORAWAN_CFLIST_SECURITY_COOKIE_SIZE);
+    _params.join_accept_new_join_eui = true;
+}
+
+lorawan_status_t LoRaMac::get_new_join_eui(const uint8_t *&join_eui, const uint8_t *&sc)
+{
+    if(_params.join_accept_new_join_eui){
+        join_eui = _params.cflist_join_eui;
+        sc = _params.cflist_join_eui_sc;
+        return LORAWAN_STATUS_OK;
+    }
+    return LORAWAN_STATUS_NO_OP;
+
 }

@@ -54,7 +54,8 @@ LoRaPHY::LoRaPHY()
       _server_adr_ack_limit(0),
       _server_adr_ack_delay(0),
       _rejoin_max_time(MBED_CONF_LORA_REJOIN_DEFAULT_MAX_TIME),
-      _rejoin_max_count(MBED_CONF_LORA_REJOIN_DEFAULT_MAX_COUNT)
+      _rejoin_max_count(MBED_CONF_LORA_REJOIN_DEFAULT_MAX_COUNT),
+      _cflist_join_eui_handler(NULL)
 {
     memset(&phy_params, 0, sizeof(phy_params));
 }
@@ -781,23 +782,45 @@ void LoRaPHY::set_adr_ack_delay(const uint16_t &value)
 
 void LoRaPHY::apply_cf_list(const uint8_t *payload, uint8_t size)
 {
-    // if the underlying PHY doesn't support CF-List, ignore the request
-    if (!phy_params.cflist_supported) {
+    // Check for correct CFlist size
+    if (size != 16) {
         return;
     }
 
+    // Last byte is the CFListType which defines the contents of the CFList
+    switch(payload[15])
+    {
+        case LORAWAN_CFLIST_TYPE_CHANNEL_LIST:
+            if (phy_params.cflist_supported) {
+                apply_cf_list_channel_list(payload);
+            }
+            break;
+        case LORAWAN_CFLIST_TYPE_CHANNEL_MASK:
+            if (phy_params.cflist_channel_mask_supported) {
+                apply_cf_list_channel_mask(payload);
+            }
+            break;
+        case LORAWAN_CFLIST_TYPE_NEW_JOIN_EUI:
+            if (phy_params.cflist_join_eui_supported) {
+                apply_cf_list_join_eui(payload);
+            }
+            break;
+        default: // RFU
+            break;
+    }
+
+    return;
+}
+
+void LoRaPHY::apply_cf_list_channel_list(const uint8_t *cf_list)
+{
     channel_params_t new_channel;
 
     // Setup default datarate range
     new_channel.dr_range.value = (phy_params.default_max_datarate << 4) |
                                  phy_params.default_datarate;
 
-    // Size of the optional CF list
-    if (size != 16) {
-        return;
-    }
 
-    // Last byte is RFU, don't take it into account
     // NOTE: Currently the PHY layers supported by LoRaWAN who accept a CF-List
     // define first 2 or 3 channels as default channels. this function is
     // written keeping that in mind. If there would be a PHY in the future that
@@ -805,12 +828,12 @@ void LoRaPHY::apply_cf_list(const uint8_t *payload, uint8_t size)
     // should override this function in the implementation of that particular
     // PHY.
     for (uint8_t i = 0, channel_id = phy_params.default_channel_cnt;
-            channel_id < phy_params.max_channel_cnt; i += 3, channel_id++) {
+           channel_id < phy_params.max_channel_cnt; i += 3, channel_id++) {
         if (channel_id < (phy_params.cflist_channel_cnt + phy_params.default_channel_cnt)) {
             // Channel frequency
-            new_channel.frequency = (uint32_t) payload[i];
-            new_channel.frequency |= ((uint32_t) payload[i + 1] << 8);
-            new_channel.frequency |= ((uint32_t) payload[i + 2] << 16);
+            new_channel.frequency = (uint32_t) cf_list[i];
+            new_channel.frequency |= ((uint32_t) cf_list[i + 1] << 8);
+            new_channel.frequency |= ((uint32_t) cf_list[i + 2] << 16);
             new_channel.frequency *= 100;
 
             // Initialize alternative frequency to 0
@@ -831,6 +854,28 @@ void LoRaPHY::apply_cf_list(const uint8_t *payload, uint8_t size)
             remove_channel(channel_id);
         }
     }
+}
+
+void LoRaPHY::apply_cf_list_channel_mask(const uint8_t *cflist)
+{
+    // Not implemented
+    MBED_ASSERT(false);
+}
+
+void LoRaPHY::apply_cf_list_join_eui(const uint8_t *cflist)
+{
+    if(_cflist_join_eui_handler){
+        _cflist_join_eui_handler(cflist, cflist + 8);
+    }
+}
+
+
+lorawan_status_t LoRaPHY::set_cflist_join_eui_handler(mbed::Callback
+                                                      <void(const uint8_t *,
+                                                       const uint8_t *)> cflist_join_eui_handler)
+{
+    _cflist_join_eui_handler = cflist_join_eui_handler;
+    return LORAWAN_STATUS_OK;
 }
 
 

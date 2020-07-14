@@ -724,6 +724,29 @@ public:
     virtual void remove_ping_slot_info_request();
 
 
+    /** Get new join EUI and security cookie
+     *
+     * Join EUI can be reprovisioned via a Join-accept with a new join EUI CF-List.
+     * Reasons to do this include:
+     *
+     *  - Changing device Join Server owner.
+     *  - Allow device to continue to operate after one or other of the
+     *    DevNonce or JoinNonce have been exhausted.
+     *  - Reprovision the root keys during transfer in control from one Join Server
+     *    to another.
+     *
+     * The stack will notify the application of a new join EUI via an event and at
+     * that time this API will be used to retrieve the new Join EUI and security cookie.
+     * For a nozero cookie the application will generate new root keys using the cookie
+     * in some fashion (e.g. table index, nonce) that is decided out-of-band.
+     *
+     * The application will
+     * then generate new root keys if the security cookie value is nonzero and restart
+     * the join procedure.
+     */
+    virtual lorawan_status_t get_new_join_eui(const uint8_t *&join_eui, const uint8_t *&sc);
+
+
     /** Provides exclusive access to the stack.
      *
      * Use only if the stack is being run in it's own separate thread.

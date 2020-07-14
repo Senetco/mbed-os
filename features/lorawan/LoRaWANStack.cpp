@@ -1189,6 +1189,14 @@ void LoRaWANStack::mlme_confirm_handler(loramac_mlme_confirm_t &mlme_confirm)
                 tr_error("Joining abandoned: CRYPTO_ERROR");
                 send_event_to_application(CRYPTO_ERROR);
                 break;
+
+            case LORAMAC_EVENT_INFO_STATUS_NEW_JOIN_EUI:
+                tr_debug("Joining abort: NEW_JOIN_EUI");
+                _ctrl_flags &= ~CONN_IN_PROGRESS_FLAG;
+                _device_current_state = DEVICE_STATE_IDLE;
+                send_event_to_application(NEW_JOIN_EUI);
+                break;
+
             default:
                 if (_loramac.get_server_type() == LW1_1 && (_ctrl_flags & REJOIN_IN_PROGRESS)) {
                     // do not retry, do not send an event
@@ -1653,4 +1661,9 @@ lorawan_status_t LoRaWANStack::disable_beacon_acquisition()
 lorawan_status_t LoRaWANStack::get_last_rx_beacon(loramac_beacon_t &beacon)
 {
     return _loramac.get_last_rx_beacon(beacon);
+}
+
+lorawan_status_t LoRaWANStack::get_new_join_eui(const uint8_t *&join_eui, const uint8_t *&sc)
+{
+    return _loramac.get_new_join_eui(join_eui, sc);
 }

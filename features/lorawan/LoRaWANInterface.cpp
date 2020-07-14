@@ -270,3 +270,11 @@ lorawan_status_t LoRaWANInterface::get_last_rx_beacon(loramac_beacon_t &beacon)
     return  _lw_stack.get_last_rx_beacon(beacon);
 }
 
+
+lorawan_status_t LoRaWANInterface::get_new_join_eui(const uint8_t *&join_eui, const uint8_t *&sc)
+{
+    Lock lock(*this);
+    return  _lw_stack.get_new_join_eui(join_eui, sc);
+}
+
+

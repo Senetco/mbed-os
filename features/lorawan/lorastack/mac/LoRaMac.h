@@ -521,6 +521,11 @@ public:
     lorawan_status_t get_last_rx_beacon(loramac_beacon_t &beacon);
 
     /**
+     * Get CF-List new join EUI
+     */
+    lorawan_status_t get_new_join_eui(const uint8_t *&join_eui, const uint8_t *&sc);
+
+    /**
      * These locks trample through to the upper layers and make
      * the stack thread safe.
      */
@@ -539,6 +544,12 @@ public:
 #endif
 
     LoRaWANTimeHandler *get_lora_time();
+
+
+    /**
+     * Process Join-accept new join EUI CF-List
+     */
+    void process_cflist_join_eui(const uint8_t *join_eui, const uint8_t *cookie);
 
 private:
     /**

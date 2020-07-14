@@ -170,14 +170,40 @@ public:
 
     /** Processes the incoming CF-list.
      *
-     * Handles the payload containing CF-list and enables channels defined
-     * therein.
+     * Handles the payload containing CF-list.
      *
      * @param payload Payload to process.
      * @param size Size of the payload.
      *
      */
     virtual void apply_cf_list(const uint8_t *payload, uint8_t size);
+
+    /** Processes CF-list channel list type
+     *
+     *  Handles applying CF-list channel list
+     *
+     * @param [in] cflist    The Join-accept CFList field.
+     *
+     */
+    virtual void apply_cf_list_channel_list(const uint8_t *cflist);
+
+    /** Processes CF-list channel mask type
+     *
+     *  Handles applying CF-list Channel Mask
+     *
+     * @param [in] cflist    The Join-accept CFList field.
+     *
+     */
+    virtual void apply_cf_list_channel_mask(const uint8_t *cflist);
+
+    /** Processes CF-list new Join EUI type
+     *
+     *  Handles CF-list new join EUI reconfiguration
+     *
+     * @param [in] cflist    The Join-accept CFList field.
+     *
+     */
+    virtual void apply_cf_list_join_eui(const uint8_t *cflist);
 
     /** Calculates the next datarate to set, when ADR is on or off.
      *
@@ -681,6 +707,13 @@ public: //Verifiers
      */
     virtual uint32_t compute_beacon_time_on_air();
 
+    /**
+     * @brief set Join accept CF-List new join eui handler
+     * @param [in] loramac_cflist_join_eui_handler  MAC Layer CF-List join eui handler
+     * @return LORAWAN_STATUS_OK if handler set
+     */
+    lorawan_status_t set_cflist_join_eui_handler(mbed::Callback<void(const uint8_t *, const uint8_t *)>loramac_cflist_join_eui_handler);
+
 protected:
     LoRaPHY();
 
@@ -816,6 +849,8 @@ private:
 
     uint32_t _rejoin_max_time;
     uint32_t _rejoin_max_count;
+
+    mbed::Callback<void(const uint8_t *, const uint8_t *)> _cflist_join_eui_handler;
 };
 
 #endif /* MBED_OS_LORAPHY_BASE_ */

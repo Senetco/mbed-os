@@ -482,6 +482,17 @@ public:
      */
     lorawan_status_t get_last_rx_beacon(loramac_beacon_t &beacon);
 
+
+    /**
+     * @brief Get new Join EUI parameters
+     *
+     * @param join_eui the CF-List new join EUI
+     * @param sc       the CF-List new join security cookie
+     * @return LORAWAN_STATUS_OK if last Join-accept contained a new join EUI CF-List, or
+     *         LORAWAN_STATUS_NO_OP
+     */
+    lorawan_status_t get_new_join_eui(const uint8_t *&join_eui, const uint8_t *&sc);
+
     /** Lock resource
      *
      * Provides mutual exclusion.

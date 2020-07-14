@@ -94,6 +94,11 @@ typedef uint64_t lorawan_gps_time_t;
 #define LORAMAC_BEACON_GW_SPECIFIC_LEN          7
 
 /*!
+ * Join-Accept Join EUI reconfiguration CF-List security cookie size.
+ */
+#define LORAWAN_CFLIST_SECURITY_COOKIE_SIZE 7
+
+/*!
  * LoRaMAC band parameters definition.
  */
 typedef struct {
@@ -699,6 +704,12 @@ typedef enum {
      * Network Beacon not found
      */
     LORAMAC_EVENT_INFO_STATUS_BEACON_NOT_FOUND,
+
+    /*!
+     * Received a Join-accept with a new join EUI
+     * reconfiguration request in the CF-List
+     */
+    LORAMAC_EVENT_INFO_STATUS_NEW_JOIN_EUI
 } loramac_event_info_status_t;
 
 /*!
@@ -1581,6 +1592,21 @@ typedef struct {
      * (e.g last transmit was not a join type or it was not eceived in a class A RX1/RX2 window)
      */
     bool discard_join_accept;
+
+     /*!
+      *  Last join accept sent with new join EUI CF-List 
+      */
+     bool join_accept_new_join_eui;
+ 
+     /*!
+      * CF-List new join EUI
+      */
+     uint8_t cflist_join_eui[8];
+ 
+     /*!
+      * CF-List new join EUI security cookie
+      */
+     uint8_t cflist_join_eui_sc[LORAWAN_CFLIST_SECURITY_COOKIE_SIZE];
 
 } loramac_protocol_params;
 

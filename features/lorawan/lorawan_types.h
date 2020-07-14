@@ -277,7 +277,8 @@ typedef enum lora_events {
     BEACON_NOT_FOUND, // only in LoRaWAN v1.0.3 and v1.1.x
     BEACON_LOCK, // only in LoRaWAN v1.0.3 and v1.1.x
     BEACON_MISS, // only in LoRaWAN v1.0.3 and v1.1.x
-    SWITCH_CLASS_B_TO_A // only in LoRaWAN v1.0.3 and v1.1.x (ch 9)
+    SWITCH_CLASS_B_TO_A, // only in LoRaWAN v1.0.3 and v1.1.x (ch 9)
+    NEW_JOIN_EUI  // only in LoRaWAN v1.x.x
 } lorawan_event_t;
 
 /**
@@ -731,5 +732,23 @@ typedef struct {
      */
     uint32_t rx_toa;
 } lorawan_rx_metadata;
+
+/**
+ * Join-accept optional list of network parameters (CFList)
+ */
+typedef enum {
+    /**
+     * Dynamic Channel List
+     */
+    LORAWAN_CFLIST_TYPE_CHANNEL_LIST = 0,
+    /**
+     * Fixed Channle Plan Channel Mask
+     */
+    LORAWAN_CFLIST_TYPE_CHANNEL_MASK = 1,
+    /**
+     * New JoinEUI and JS Cookie
+     */
+    LORAWAN_CFLIST_TYPE_NEW_JOIN_EUI = 255
+} lorawan_cflist_type;
 
 #endif /* MBED_LORAWAN_TYPES_H_ */
